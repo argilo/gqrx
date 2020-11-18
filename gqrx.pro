@@ -274,8 +274,7 @@ PKGCONFIG += gnuradio-analog \
              gnuradio-digital \
              gnuradio-filter \
              gnuradio-fft \
-             gnuradio-runtime \
-             gnuradio-osmosdr
+             gnuradio-runtime
 
 # Detect GNU Radio version and link against log4cpp for 3.8
 GNURADIO_VERSION = $$system(pkg-config --modversion gnuradio-runtime)

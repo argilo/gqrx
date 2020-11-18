@@ -3,7 +3,7 @@ language: cpp
 jobs:
   include:
     - os: osx
-      osx_image: xcode12.2
+      osx_image: xcode11.6
     - os: linux
       dist: focal
       compiler: gcc
@@ -41,6 +41,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y cmake qt5-default libqt5svg5-dev libboost-dev libpulse-dev portaudio19-dev liblog4cpp5-dev gnuradio-dev gr-osmosdr gr-fcdproplus liborc-0.4-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gr-osmosdr; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt --force; fi
 
 script:
   - mkdir cmake-build
@@ -52,4 +53,5 @@ script:
   - mkdir qmake-build
   - cd qmake-build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then qmake AUDIO_BACKEND=$AUDIO_BACKEND ..; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then qmake ..; fi
+  - make
