@@ -46,6 +46,7 @@ CIqTool::CIqTool(QWidget *parent) :
     is_playing = false;
     bytes_per_sample = 8;
     sample_rate = 192000;
+    frequency = 0;
     rec_len = 0;
 
     //ui->recDirEdit->setText(QDir::currentPath());
@@ -91,7 +92,22 @@ void CIqTool::on_listWidget_currentTextChanged(const QString &currentText)
     QFileInfo info(*recdir, current_file);
 
     // Get duration of selected recording and update label
-    sample_rate = sampleRateFromFileName(currentText);
+    QStringList list = currentText.split('_');
+    if (list.size() >= 5)
+    {
+        // gqrx_yymmdd_hhmmss_freq_samprate_fc.raw
+        bool ok;
+        qint64 val;
+
+        val = list.at(4).toLongLong(&ok);
+        if (ok)
+            sample_rate = val;
+
+        val = list.at(3).toLongLong(&ok);
+        if (ok)
+            frequency = val;
+    }
+
     rec_len = (int)(info.size() / (sample_rate * bytes_per_sample));
 
     refreshTimeWidgets();
@@ -126,7 +142,7 @@ void CIqTool::on_playButton_clicked(bool checked)
             ui->listWidget->setEnabled(false);
             ui->recButton->setEnabled(false);
             emit startPlayback(recdir->absoluteFilePath(current_file),
-                               (float)sample_rate);
+                               (float)sample_rate, frequency);
         }
     }
     else
@@ -352,25 +368,4 @@ void CIqTool::refreshTimeWidgets(void)
                            .arg(lh, 2, 10, QChar('0'))
                            .arg(lm, 2, 10, QChar('0'))
                            .arg(ls, 2, 10, QChar('0')));
-}
-
-
-/*! \brief Extract sample rate from file name */
-qint64 CIqTool::sampleRateFromFileName(const QString &filename)
-{
-    bool ok;
-    qint64 sr;
-
-    QStringList list = filename.split('_');
-
-    if (list.size() < 5)
-        return sample_rate;
-
-    // gqrx_yymmdd_hhmmss_freq_samprate_fc.raw
-    sr = list.at(4).toLongLong(&ok);
-
-    if (ok)
-        return sr;
-    else
-        return sample_rate;  // return current rate
 }

@@ -284,7 +284,7 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     // I/Q playback
     connect(iq_tool, SIGNAL(startRecording(QString)), this, SLOT(startIqRecording(QString)));
     connect(iq_tool, SIGNAL(stopRecording()), this, SLOT(stopIqRecording()));
-    connect(iq_tool, SIGNAL(startPlayback(QString,float)), this, SLOT(startIqPlayback(QString,float)));
+    connect(iq_tool, SIGNAL(startPlayback(QString,float,qint64)), this, SLOT(startIqPlayback(QString,float,qint64)));
     connect(iq_tool, SIGNAL(stopPlayback()), this, SLOT(stopIqPlayback()));
     connect(iq_tool, SIGNAL(seek(qint64)), this,SLOT(seekIqFile(qint64)));
 
@@ -1589,7 +1589,7 @@ void MainWindow::stopIqRecording()
         ui->statusBar->showMessage(tr("I/Q data recoding stopped"), 5000);
 }
 
-void MainWindow::startIqPlayback(const QString filename, float samprate)
+void MainWindow::startIqPlayback(const QString filename, float samprate, qint64 frequency)
 {
     if (ui->actionDSP->isChecked())
     {
@@ -1606,6 +1606,8 @@ void MainWindow::startIqPlayback(const QString filename, float samprate)
     qDebug() << __func__ << ":" << devstr;
 
     rx->set_input_device(devstr.toStdString());
+    setLnbLo(0);
+    setIgnoreLimits(false);
 
     // sample rate
     double actual_rate = rx->set_input_rate(samprate);
@@ -1613,6 +1615,7 @@ void MainWindow::startIqPlayback(const QString filename, float samprate)
     qDebug() << "Actual sample rate   :" << QString("%1")
                 .arg(actual_rate, 0, 'f', 6);
 
+    ui->freqCtrl->setFrequency(frequency + rx->get_filter_offset());
     uiDockRxOpt->setFilterOffsetRange((qint64)(actual_rate));
     ui->plotter->setSampleRate(actual_rate);
     ui->plotter->setSpanFreq((quint32)actual_rate);
@@ -1634,31 +1637,7 @@ void MainWindow::stopIqPlayback()
 
     ui->statusBar->showMessage(tr("I/Q playback stopped"), 5000);
 
-    // restore original input device
-    QString indev = m_settings->value("input/device", "").toString();
-    rx->set_input_device(indev.toStdString());
-
-    // restore sample rate
-    bool conv_ok;
-    int sr = m_settings->value("input/sample_rate", 0).toInt(&conv_ok);
-    if (conv_ok && (sr > 0))
-    {
-        double actual_rate = rx->set_input_rate(sr);
-        qDebug() << "Requested sample rate:" << sr;
-        qDebug() << "Actual sample rate   :" << QString("%1")
-                    .arg(actual_rate, 0, 'f', 6);
-
-        uiDockRxOpt->setFilterOffsetRange((qint64)(actual_rate));
-        ui->plotter->setSampleRate(actual_rate);
-        ui->plotter->setSpanFreq((quint32)actual_rate);
-        remote->setBandwidth(sr);
-
-        // not needed as long as we are not recording in iq_tool
-        //iq_tool->setSampleRate(sr);
-    }
-
-    // restore frequency, gain, etc...
-    uiDockInputCtl->readSettings(m_settings);
+    loadConfig(m_settings->fileName(), false, false);
 
     if (ui->actionDSP->isChecked())
     {
