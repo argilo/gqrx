@@ -84,7 +84,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install --HEAD dylibbundler
-          brew install airspy boost gnuradio hackrf libbladerf librtlsdr uhd
+          brew install airspy boost gnuradio hackrf hidapi libbladerf librtlsdr uhd
 
           cd /tmp
           git clone https://github.com/airspy/airspyhf.git
@@ -92,6 +92,16 @@ jobs:
           mkdir build
           cd build
           cmake ..
+          make
+          sudo make install
+
+          cd /tmp
+          git clone https://github.com/argilo/gr-fcdproplus.git
+          cd gr-fcdproplus
+          git checkout fix-macos-homebrew
+          mkdir build
+          cd build
+          cmake -DCMAKE_CXX_STANDARD=11 ..
           make
           sudo make install
 
