@@ -125,4 +125,13 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
+          choco install gnuradio 
           vcpkg install rtlsdr
+
+          git clone git://git.osmocom.org/gr-osmosdr
+          cd gr-osmosdr
+          mkdir build
+          cd build
+          cmake -DENABLE_PYTHON=FALSE ..
+          make
+          make install
