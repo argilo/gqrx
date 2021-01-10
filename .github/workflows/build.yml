@@ -90,7 +90,7 @@ jobs:
           brew unlink gcc@9
           brew install airspy boost gnuradio hackrf libbladerf librtlsdr uhd
           brew tap pothosware/homebrew-pothos
-          brew install soapysdr soapyremote
+          brew install soapysdr soapyplutosdr soapyremote
 
           cd /tmp
           git clone https://github.com/airspy/airspyhf.git
